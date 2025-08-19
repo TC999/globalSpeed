@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  CI:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone
+        uses: actions/checkout@v5.0.0
+
+      - name: install nodejs
+        run: |
+          sudo apt-get install nodejs npm
+
+      - name: install pnpm
+        run: |
+          npm install -g pnpm
+
+      - name: Pnpm install
+        run: |
+          pnpm install
+
+      - name: Chrome Build
+        run: |
+          pnpm build:common
+
+      - name: Firefox Build
+        run: |
+          pnpm build:commonFf
+
+      - name: Upload Chrome Build
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: chrome-build
+          path: build/unpacked
+
+      - name: Upload Firefox Build
+        uses: actions/upload-artifact@v4.0.0
+        with:
+          name: firefox-build
+          path: buildFf/unpacked
