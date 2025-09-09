@@ -5,7 +5,7 @@ import { randomId, isFirefox, getPopupSize, isMobile } from "../utils/helper"
 import { filterInfos } from "./filters"
 
 export type CommandName = "nothing" | "runCode" | "openUrl" | "intoPopup" |
-  "speed" | "speedChangesPitch" | "pin" | "state" | 
+  "speed" | "temporarySpeed" | "speedChangesPitch" | "pin" | "state" | 
   "seek" | "pause" | "mute" | "muteTab" | "volume" | "setMark" | "seekMark" | "loop" | "skip" | 
   "fullscreen" | "PiP" | "mediaInfo" | "cinema" | "loopEntire" |
   "fxState" | "fxReset" | "fxSwap" | "fxFilter" | "drawPage" |
@@ -16,6 +16,7 @@ export let commandInfos: {[key in CommandName]: Command} = {
   nothing: {
     group: CommandGroup.MISC,
     valueType: 'number',
+    disableOnMobile: true,
     ref: {
       default: 0,
       min: 0,
@@ -31,6 +32,7 @@ export let commandInfos: {[key in CommandName]: Command} = {
   runCode: {
     group: CommandGroup.MISC,
     valueType: "modalString",
+    disableOnMobile: true,
     generate: () => ({
       id: randomId(),
       command: "runCode",
@@ -52,6 +54,7 @@ export let commandInfos: {[key in CommandName]: Command} = {
   },
   intoPopup: {
     group: CommandGroup.MISC,
+    disableOnMobile: true,
     generate: () => ({
       id: randomId(),
       command: "intoPopup",
@@ -78,6 +81,22 @@ export let commandInfos: {[key in CommandName]: Command} = {
       command: "speed",
       enabled: true,
       greedy: true
+    })
+  },
+  temporarySpeed: {
+    valueType: "number",
+    hasFeedback: true,
+    requiresMedia: true,
+    ref: {
+      default: 3,
+      min: 0
+    },
+    generate: () => ({
+      id: randomId(),
+      command: "temporarySpeed",
+      enabled: true,
+      greedy: true,
+      valueNumber: 3
     })
   },
   speedChangesPitch: {
@@ -192,6 +211,7 @@ export let commandInfos: {[key in CommandName]: Command} = {
   },
   muteTab: {
     group: CommandGroup.MEDIA,
+    disableOnMobile: true,
     hasFeedback: true,
     valueType: "state",
     requiresMedia: true,
@@ -281,6 +301,7 @@ export let commandInfos: {[key in CommandName]: Command} = {
   fullscreen: {
     group: CommandGroup.MEDIA,
     requiresVideo: true,
+    disableOnMobile: true,
     generate: () => ({
       id: randomId(),
       command: "fullscreen",
@@ -292,6 +313,7 @@ export let commandInfos: {[key in CommandName]: Command} = {
     group: CommandGroup.MEDIA,
     valueType: "state",
     requiresVideo: true,
+    disableOnMobile: true,
     requiresPiPApi: true,
     generate: () => ({
       id: randomId(),
@@ -304,6 +326,7 @@ export let commandInfos: {[key in CommandName]: Command} = {
   cinema: {
     group: CommandGroup.MEDIA,
     valueType: "state",
+    disableOnMobile: true,
     requiresVideo: true,
     generate: () => ({
       id: randomId(),
@@ -316,6 +339,7 @@ export let commandInfos: {[key in CommandName]: Command} = {
   mediaInfo: {
     group: CommandGroup.MEDIA,
     requiresMedia: true,
+    disableOnMobile: true,
     generate: () => ({
       id: randomId(),
       command: "mediaInfo",
@@ -392,6 +416,7 @@ export let commandInfos: {[key in CommandName]: Command} = {
   },
   drawPage: {
     group: CommandGroup.FX,
+    disableOnMobile: true,
     generate: () => ({
       id: randomId(),
       command: "drawPage",

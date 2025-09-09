@@ -1,6 +1,6 @@
 import { useRef, useState } from "react"
 import { AdjustMode, CommandGroup, Keybind, StateView } from "../types"
-import { areYouSure, isFirefox, moveItem, randomId } from "../utils/helper"
+import { areYouSure, isFirefox, isMobile, moveItem, randomId } from "../utils/helper"
 import { commandInfos, CommandName, getDefaultKeybinds, availableCommandNames } from "../defaults/commands"
 import { KeybindControl } from "./keybindControl"
 import { CommandWarning } from "./CommandWarning"
@@ -29,10 +29,10 @@ export function SectionEditor(props: {}) {
 
   return (
     <div className="section SectionEditor">
-      <h2>{gvar.gsm.options.editor.header}</h2>
-      <EditorDescription hasKeybinds={view.keybinds.length >= 0}/>
-      {isFirefox() ? null : <CommandWarning keybinds={view.keybinds || []}/>}
-      {isFirefox() ? null : <DevWarning hasJs={view.keybinds?.some(kb => kb.enabled && kb.command === "runCode")}/>}
+      <h2>{gvar.gsm.options.editor[isMobile() ? 'headerMobile' : 'header']}</h2>
+      {!isMobile() && <EditorDescription hasKeybinds={view.keybinds.length >= 0}/>}
+      {(isFirefox() || isMobile()) ? null : <CommandWarning keybinds={view.keybinds || []}/>}
+      {(isFirefox() || isMobile()) ? null : <DevWarning hasJs={view.keybinds?.some(kb => kb.enabled && kb.command === "runCode")}/>}
       {<EditorKeybinds view={view} setView={setView}/>}
       <EditorControls view={view} setView={setView}/>
     </div>
@@ -146,16 +146,12 @@ function getOptions() {
   let previousGroup: {group: CommandGroup}
   availableCommandNames.forEach(command => {
     const info = commandInfos[command as keyof typeof commandInfos]
+    if (isMobile() && info.disableOnMobile) return 
     if (previousGroup && previousGroup.group !== info.group) {
       cachedOptions.push({label: "------", value: `${command}_group`, disabled: true})
     }
     cachedOptions.push({label: (gvar.gsm.command as any)[command], value: command})
     previousGroup = {group: info.group}
-  })
-
-  cachedOptions.splice(4, 0, {
-    label: gvar.gsm.command.presets,
-    value: 'presets'
   })
 
   return cachedOptions 
@@ -165,12 +161,10 @@ function EditorControls(props: {view: StateView, setView: SetView}) {
   const { view, setView } = props
   const urlRuleCount = view.keybindsUrlCondition?.parts?.length || 0
   const [commandOption, setCommandOption] = useState("speed")
-  const [presetOption, setPresetOption] = useState(null)
   const [show, setShow] = useState(false)
-  let showPresets = commandOption === "presets"
 
   return (
-    <div className="controls" style={{"--controls-column-count": showPresets ? 4 : 3} as React.CSSProperties}>
+    <div className="controls">
 
       {/* Primary select */}
       <select value={commandOption} onChange={e => {
@@ -181,30 +175,8 @@ function EditorControls(props: {view: StateView, setView: SetView}) {
         })}
       </select>
 
-      {/* Secondary select */}
-      {showPresets && (
-        <select style={{marginRight: "10px"}} value={presetOption ?? presets[0].name} onChange={e => {
-            setPresetOption(e.target.value)
-          }}>
-            {presets.map(preset => (
-              <option key={preset.name} value={preset.name}>{(gvar.gsm.command as any)[preset.name]}</option>
-            ))}
-          </select>
-      )}
-
       {/* Create */}
       <button onClick={e => {
-        if (commandOption === "presets") {
-          let preset = presets.find(v => v.name === presetOption) ?? presets[0]
-          if (preset) {
-              setView({
-                keybinds: [...produce(view.keybinds, d => {
-                  d.at(-1).spacing = 2 
-                }), ...preset.getKbs(view.hideIndicator)]
-              })
-          }
-          return 
-        }
         setView({
           keybinds: [...view.keybinds, commandInfos[commandOption as CommandName].generate()]
         })
